@@ -131,6 +131,8 @@ class VoxelOctoTree
 
 public:
   VoxelOctoTree() = default;
+
+  // temp 和 new的区别？temp_points_是存储的点，new_points_是记录的数量，二者好像完全保持了一致。
   std::vector<pointWithVar> temp_points_;
   VoxelPlane *plane_ptr_;
   int layer_;
@@ -144,8 +146,18 @@ public:
   int update_size_threshold_;
   int max_points_num_;
   int max_layer_;
+
+  // `new_points_`: 加入但并没有来得及处理的点。
+  // +1的情况：1）初始化；2）更新`UpdateOctoTree`时；3）insert时；4）不符合plane，对voxel进行拆分成4个时，每个voxel里面暂存。
+  // 什么时候处理完清0？1）temp_points_数量大于阈值？？ 2）不符合plane对voxel拆分后，2.1）如果拆分后符合平面，则初始化并清零。2.2）拆分后不符合平面，也清零；3）UpdateOctoTree时自增。是平面初始化；不是平面也自增。
   int new_points_;
+
+
   bool init_octo_;
+
+  // `update_enable_`: 判断是否可以更新。
+  // 什么时候可以更新？Octo初始化以后可以更新，出现以下情况永久停止更新：
+  // 停止更新：1）初始化时的点数，超过了点数阈值；2）更新过程中（无论是否是平面），超过了点数阈值；3）拆分8个leaf为子节点后，每个子节点的点数都超过了节点的阈值。
   bool update_enable_;
 
   VoxelOctoTree(int max_layer, int layer, int points_size_threshold, int max_points_num, float planer_threshold)

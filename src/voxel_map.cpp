@@ -539,6 +539,7 @@ void VoxelMapManager::BuildVoxelMap()
 
   std::vector<pointWithVar> input_points;
 
+  // 计算每个点的cov
   for (size_t i = 0; i < feats_down_world_->size(); i++)
   {
     pointWithVar pv;
@@ -554,6 +555,7 @@ void VoxelMapManager::BuildVoxelMap()
     input_points.push_back(pv);
   }
 
+  // 将每个点放入对应的voxel，判断是否需要创建voxel_map对那个的键值，
   uint plsize = input_points.size();
   for (uint i = 0; i < plsize; i++)
   {
@@ -564,11 +566,12 @@ void VoxelMapManager::BuildVoxelMap()
       loc_xyz[j] = p_v.point_w[j] / voxel_size;
       if (loc_xyz[j] < 0) { loc_xyz[j] -= 1.0; }
     }
-    VOXEL_LOCATION position((int64_t)loc_xyz[0], (int64_t)loc_xyz[1], (int64_t)loc_xyz[2]);
+    //~ VOXEL_LOCATION 是一个 class。
+    VOXEL_LOCATION position((int64_t)loc_xyz[0], (int64_t)loc_xyz[1], (int64_t)loc_xyz[2]);   
     auto iter = voxel_map_.find(position);
     if (iter != voxel_map_.end())
     {
-      voxel_map_[position]->temp_points_.push_back(p_v);
+      voxel_map_[position]->temp_points_.push_back(p_v);  //~ voxel_map 是一个 unordered_map
       voxel_map_[position]->new_points_++;
     }
     else
@@ -670,6 +673,8 @@ void VoxelMapManager::BuildResidualListOMP(std::vector<pointWithVar> &pv_list, s
     }
     VOXEL_LOCATION position((int64_t)loc_xyz[0], (int64_t)loc_xyz[1], (int64_t)loc_xyz[2]);
     auto iter = voxel_map_.find(position);
+
+    //~ stateUpdate时，只寻找有点的voxel，并不进行VoxelMap的更新。
     if (iter != voxel_map_.end())
     {
       VoxelOctoTree *current_octo = iter->second;
@@ -706,7 +711,7 @@ void VoxelMapManager::BuildResidualListOMP(std::vector<pointWithVar> &pv_list, s
   }
   for (size_t i = 0; i < useful_ptpl.size(); i++)
   {
-    if (useful_ptpl[i]) { ptpl_list.push_back(all_ptpl_list[i]); }
+    if (useful_ptpl[i]) { ptpl_list.push_back(all_ptpl_list[i]); }    //~ 最后处理避免中间线程锁时占用。
   }
 }
 

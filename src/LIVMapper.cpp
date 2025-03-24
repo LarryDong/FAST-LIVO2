@@ -403,6 +403,7 @@ void LIVMapper::handleLIO()
 
   double t3 = omp_get_wtime();
 
+  //~ 对每个lidar点转到world系，然后计算var
   PointCloudXYZI::Ptr world_lidar(new PointCloudXYZI());
   transformLidar(_state.rot_end, _state.pos_end, feats_down_body, world_lidar);
   for (size_t i = 0; i < world_lidar->points.size(); i++) 
@@ -414,6 +415,8 @@ void LIVMapper::handleLIO()
           (-point_crossmat) * _state.cov.block<3, 3>(0, 0) * (-point_crossmat).transpose() + _state.cov.block<3, 3>(3, 3);
     voxelmap_manager->pv_list_[i].var = var;
   }
+
+  //~ 更新voxelMap
   voxelmap_manager->UpdateVoxelMap(voxelmap_manager->pv_list_);
   std::cout << "[ LIO ] Update Voxel Map" << std::endl;
   _pv_list = voxelmap_manager->pv_list_;
